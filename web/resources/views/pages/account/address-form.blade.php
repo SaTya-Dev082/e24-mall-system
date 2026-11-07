@@ -1,0 +1,5 @@
+@extends('layouts.storefront')
+@section('title', 'Delivery address — E24')
+@section('content')
+<section class="customer-auth"><h1>{{ $address ? 'Edit address' : 'Add address' }}</h1><form method="POST" action="{{ $address ? route('account.addresses.update', $address->id) : route('account.addresses.store') }}">@csrf @if($address) @method('PUT') @endif @foreach(['full_name' => 'Recipient name', 'phone' => 'Phone', 'province' => 'Province', 'city' => 'City', 'district' => 'District', 'street_address' => 'Street address', 'postal_code' => 'Postal code'] as $field => $label)<label>{{ $label }}<input name="{{ $field }}" value="{{ old($field, $address?->$field) }}" maxlength="{{ $field === 'street_address' ? 2000 : ($field === 'phone' ? 50 : ($field === 'postal_code' ? 30 : ($field === 'full_name' ? 255 : 100))) }}" @required(in_array($field, ['full_name', 'phone', 'province', 'street_address']))></label>@endforeach<label class="checkbox-label"><input type="checkbox" name="is_default" value="1" @checked(old('is_default', $address?->is_default))> Default shipping address</label><button class="button">Save address</button></form></section>
+@endsection

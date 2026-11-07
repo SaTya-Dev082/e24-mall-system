@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\StorefrontCart;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\View\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\View::composer('layouts.storefront', function (View $view): void {
+            $view->with('cartCount', app(StorefrontCart::class)->count(request()));
+            $view->with('customer', Auth::guard('web')->user());
+        });
     }
 }

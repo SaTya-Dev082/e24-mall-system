@@ -71,8 +71,50 @@ class StorefrontCartTest extends TestCase
         $variant = $this->option();
         $this->get('/products/lamp')->assertOk()->assertSee('Buy Now')->assertSee('id="detail-quantity"', false);
         $this->post('/cart/products/lamp', ['variant' => $variant->id, 'quantity' => 2, 'intent' => 'buy_now'])
-            ->assertRedirect(route('storefront.cart.index'))
+            ->assertRedirect(route('checkout.index'))
             ->assertSessionHas('storefront_cart.'.$variant->id, 2);
         $this->get('/cart')->assertOk()->assertSee('$49.00');
+    }
+
+    public function test_cart_quantity_update_checks_session_ownership_stock_and_totals(): void
+    {
+        $variant = $this->option();
+        $this->patch('/cart/items/'.$variant->id, ['quantity' => 2])->assertNotFound();
+        $this->post('/cart/products/lamp');
+        $this->patch('/cart/items/'.$variant->id, ['quantity' => 3])->assertRedirect(route('storefront.cart.index'))->assertSessionHas('storefront_cart.'.$variant->id, 3);
+        $this->get('/cart')->assertOk()->assertSee('$73.50')->assertSee('Cart summary')->assertSee('cart-item-image');
+        $this->patch('/cart/items/'.$variant->id, ['quantity' => 4])->assertSessionHasErrors('cart')->assertSessionHas('storefront_cart.'.$variant->id, 3);
+        $this->patch('/cart/items/'.$variant->id, ['quantity' => 0])->assertSessionHasErrors('quantity');
+        $this->assertSame(2, $variant->fresh()->reserved_quantity);
+        $variant->update(['status' => 'inactive']);
+        $this->patch('/cart/items/'.$variant->id, ['quantity' => 1])->assertSessionHasErrors('cart');
+    }
+
+    public function test_selection_changes_subtotal_and_bulk_remove_only_removes_selected_owned_lines(): void
+    {
+        $first = $this->option();
+        $second = $this->option('chair');
+        $this->post('/cart/products/lamp');
+        $this->post('/cart/products/chair');
+        $this->post('/cart/selection', ['selected' => [$first->id]])->assertRedirect(route('storefront.cart.index'));
+        $this->get('/cart')->assertViewHas('subtotal', '24.50');
+        $this->post('/cart/selection', ['selected' => []])->assertRedirect();
+        $this->get('/cart')->assertViewHas('subtotal', '0.00');
+        $this->post('/cart/selection', ['selected' => [999999]])->assertNotFound();
+        $this->post('/cart/remove-selected', ['selected' => [999999]])->assertNotFound();
+        $this->post('/cart/remove-selected', ['selected' => [$first->id]])->assertRedirect()->assertSessionHas('storefront_cart', [$second->id => 1]);
+        $this->post('/cart/selection', ['selected' => [$second->id]])->assertRedirect();
+        $this->get('/cart')->assertViewHas('subtotal', '24.50');
+    }
+
+    public function test_card_json_add_prompts_for_variants_and_updates_cart_without_redirect(): void
+    {
+        $variant = $this->option();
+        $this->postJson('/cart/products/lamp')->assertOk()->assertJsonPath('count', 1);
+        $variant->product->variants()->create(['sku' => 'other-choice', 'name' => 'Red', 'price' => '28.00', 'stock_quantity' => 2]);
+        $this->postJson('/cart/products/lamp')->assertStatus(409)->assertJsonCount(2, 'options')->assertSessionHas('storefront_cart.'.$variant->id, 1);
+        $this->postJson('/cart/products/lamp', ['variant' => $variant->id])->assertOk()->assertJsonPath('count', 2);
+        $variant->update(['status' => 'inactive']);
+        $this->postJson('/cart/products/lamp', ['variant' => $variant->id])->assertUnprocessable();
     }
 }

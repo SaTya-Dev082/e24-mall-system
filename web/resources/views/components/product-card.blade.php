@@ -19,8 +19,9 @@
             <time datetime="{{ $product->created_at->toIso8601String() }}" title="{{ \App\Support\StorefrontFormat::date($product->created_at) }}">{{ \App\Support\StorefrontFormat::productAge($product->created_at) }}</time>
         @endif
     </div>
-    <form class="compact-cart-form" method="POST" action="{{ route('storefront.cart.store', $product->slug) }}">
+    <form class="compact-cart-form" data-card-cart method="POST" action="{{ route('storefront.cart.store', $product->slug) }}">
         @csrf
         <button class="compact-button" type="submit" @disabled(!$product->has_available_stock) aria-label="Add {{ $product->name }} to cart">Add to Cart</button>
+        <p class="card-cart-feedback" role="status" aria-live="polite"></p>
     </form>
 </article>

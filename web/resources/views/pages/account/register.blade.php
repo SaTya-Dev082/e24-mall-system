@@ -1,0 +1,5 @@
+@extends('layouts.storefront')
+@section('title', 'Create account — E24')
+@section('content')
+<section class="customer-auth"><p class="eyebrow">JOIN E24</p><h1>Create an account</h1><p>Your selection stays with you.</p><form method="POST" action="{{ route('register.store') }}">@csrf<label>Name<input name="name" value="{{ old('name') }}" autocomplete="name" maxlength="255" required></label><label>Email<input type="email" name="email" value="{{ old('email') }}" autocomplete="email" maxlength="255" required></label><label>Phone (optional)<input name="phone" value="{{ old('phone') }}" autocomplete="tel" maxlength="50"></label><label>Password<input type="password" name="password" autocomplete="new-password" minlength="12" maxlength="128" required></label><label>Confirm password<input type="password" name="password_confirmation" autocomplete="new-password" minlength="12" maxlength="128" required></label><button class="button">Create account</button></form><p>Already registered? <a href="{{ route('login') }}">Sign in</a></p></section>
+@endsection
