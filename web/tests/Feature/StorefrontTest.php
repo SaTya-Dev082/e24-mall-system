@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Support\StorefrontFormat;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -57,7 +58,7 @@ class StorefrontTest extends TestCase
 
     public function test_product_detail_exposes_variant_prices_and_net_stock_and_escapes_content(): void
     {
-        $product = $this->product(['description' => '<script>alert(1)</script>']);
+        $product = $this->product(['description' => '<script>alert(1)</script>', 'short_description' => '<script>alert(1)</script>']);
         $product->variants()->create(['name' => 'Blue', 'sku' => 'BLUE', 'price' => 35, 'stock_quantity' => 10, 'reserved_quantity' => 4]);
         $product->variants()->create(['name' => 'Red', 'sku' => 'RED', 'price' => 45, 'stock_quantity' => 0]);
         $product->variants()->create(['name' => 'Hidden option', 'sku' => 'OFF', 'price' => 50, 'status' => 'inactive']);
@@ -106,5 +107,28 @@ class StorefrontTest extends TestCase
             $this->assertCount(1, $selected, $url);
             $this->assertSame($label, trim($selected->item(0)->textContent), $url);
         }
+    }
+
+    public function test_product_age_formats_minutes_hours_days_weeks_and_older_dates(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-11-07 12:00:00', 'Asia/Phnom_Penh'));
+        foreach ([10 => '10m', 300 => '5h', 5760 => '4d', 10080 => '1w', 40320 => '10-Oct-2026'] as $minutes => $expected) {
+            $this->assertSame($expected, StorefrontFormat::productAge(now()->subMinutes($minutes)));
+        }
+        $this->assertSame('9-Jan-2006', StorefrontFormat::productAge(CarbonImmutable::parse('2006-01-09', 'Asia/Phnom_Penh')));
+        $this->assertSame('1m', StorefrontFormat::productAge(now()));
+        $product = $this->product(['location' => 'Siem Reap']);
+        $product->forceFill(['created_at' => now()->subMinutes(10)])->save();
+        $this->get('/products')->assertOk()->assertSee('Siem Reap')->assertSee('10m')->assertDontSee('Created:');
+    }
+
+    public function test_recommendations_fall_back_to_other_published_categories(): void
+    {
+        $product = $this->product();
+        $category = Category::create(['name' => 'Other', 'slug' => 'other']);
+        $other = $this->product(['slug' => 'other-item', 'category_id' => $category->id]);
+        $this->product(['slug' => 'hidden-item', 'status' => 'draft']);
+        $this->get('/products/lamp')->assertOk()->assertSee('You might also like')->assertDontSee('About this product')
+            ->assertViewHas('related', fn ($items) => $items->pluck('id')->all() === [$other->id]);
     }
 }

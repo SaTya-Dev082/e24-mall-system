@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'slug',
     'sku',
     'short_description',
+    'location',
     'description',
     'price',
     'compare_price',

@@ -29,6 +29,7 @@ class ProductRequest extends FormRequest
             'brand_id' => ['nullable', 'integer', 'exists:brands,id'],
             'price' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'status' => ['required', 'in:draft,active,inactive'],
+            'location' => ['nullable', 'string', 'max:150'],
             'short_description' => ['nullable', 'string', 'max:2000'],
             'initial_stock' => ['nullable', 'integer', 'between:0,1000000000'],
         ];

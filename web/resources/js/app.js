@@ -76,3 +76,57 @@ document.querySelectorAll('[data-banner-carousel]').forEach(carousel => {
     updateToggle();
     schedule();
 });
+const cardDescriptions = [...document.querySelectorAll('[data-card-description]')].map(element => ({
+    element,
+    text: element.querySelector('[data-description-text]'),
+    more: element.querySelector('[data-description-more]'),
+    original: element.querySelector('[data-description-text]').textContent,
+}));
+function fitCardDescription({ element, text, more, original }) {
+    if (!element.clientWidth) return;
+    text.textContent = original;
+    more.hidden = true;
+    if (element.scrollHeight <= element.clientHeight + 1) return;
+    more.hidden = false;
+    const characters = Array.from(original);
+    let low = 0;
+    let high = characters.length;
+    while (low < high) {
+        const middle = Math.ceil((low + high) / 2);
+        text.textContent = characters.slice(0, middle).join('').trimEnd();
+        if (element.scrollHeight <= element.clientHeight + 1) low = middle;
+        else high = middle - 1;
+    }
+    text.textContent = characters.slice(0, low).join('').trimEnd();
+}
+let descriptionFrame;
+function fitCardDescriptions() {
+    window.cancelAnimationFrame(descriptionFrame);
+    descriptionFrame = window.requestAnimationFrame(() => cardDescriptions.forEach(fitCardDescription));
+}
+if (cardDescriptions.length) {
+    const observer = new ResizeObserver(fitCardDescriptions);
+    cardDescriptions.forEach(({ element }) => observer.observe(element));
+    document.fonts.ready.then(fitCardDescriptions);
+    fitCardDescriptions();
+}
+const detailQuantity = document.getElementById('detail-quantity');
+function updateDetailQuantity(maximum) {
+    if (!detailQuantity) return;
+    const maximumQuantity = Math.max(1, Math.min(99, maximum));
+    detailQuantity.max = String(maximumQuantity);
+    detailQuantity.value = String(Math.max(1, Math.min(maximumQuantity, Number(detailQuantity.value) || 1)));
+    document.querySelectorAll('[data-quantity-step]').forEach(button => {
+        button.disabled = Number(button.dataset.quantityStep) < 0
+            ? Number(detailQuantity.value) <= 1 : Number(detailQuantity.value) >= maximumQuantity;
+    });
+}
+if (detailQuantity) {
+    document.querySelectorAll('[data-quantity-step]').forEach(button => button.addEventListener('click', () => {
+        detailQuantity.value = String((Number(detailQuantity.value) || 1) + Number(button.dataset.quantityStep));
+        updateDetailQuantity(Number(detailQuantity.max));
+    }));
+    document.querySelectorAll('input[name="variant"]').forEach(input => input.addEventListener('change', () => updateDetailQuantity(Number(input.dataset.stock))));
+    detailQuantity.addEventListener('change', () => updateDetailQuantity(Number(detailQuantity.max)));
+    updateDetailQuantity(99);
+}

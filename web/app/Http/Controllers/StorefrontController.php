@@ -20,7 +20,7 @@ class StorefrontController extends Controller
 
     private function cards(): Builder
     {
-        return $this->products()->select(['id', 'name', 'slug', 'price', 'stock_status', 'created_at'])->with(['primaryImage:id,product_id,image_url,alt_text'])->withExists(['variants as has_available_stock' => fn ($query) => $query->where('status', 'active')->whereColumn('stock_quantity', '>', 'reserved_quantity')]);
+        return $this->products()->select(['id', 'name', 'slug', 'short_description', 'location', 'price', 'stock_status', 'created_at'])->with(['primaryImage:id,product_id,image_url,alt_text'])->withExists(['variants as has_available_stock' => fn ($query) => $query->where('status', 'active')->whereColumn('stock_quantity', '>', 'reserved_quantity')]);
     }
 
     private function categories(): Collection
@@ -30,7 +30,7 @@ class StorefrontController extends Controller
 
     public function home(): View
     {
-        return view('pages.home', ['banners' => DB::table('storefront_banners')->whereNull('deleted_at')->where('status', 'active')->where(fn ($query) => $query->whereNull('start_date')->orWhere('start_date', '<=', now()))->where(fn ($query) => $query->whereNull('end_date')->orWhere('end_date', '>', now()))->orderBy('sort_order')->orderBy('id')->limit(8)->get(), 'categories' => $this->categories(), 'featured' => $this->cards()->where('is_featured', true)->orderByDesc('created_at')->orderByDesc('id')->limit(4)->get(), 'latest' => $this->cards()->orderByDesc('created_at')->orderByDesc('id')->limit(8)->get()]);
+        return view('pages.home', ['banners' => DB::table('storefront_banners')->whereNull('deleted_at')->where('status', 'active')->where(fn ($query) => $query->whereNull('start_date')->orWhere('start_date', '<=', now()))->where(fn ($query) => $query->whereNull('end_date')->orWhere('end_date', '>', now()))->orderBy('sort_order')->orderBy('id')->limit(8)->get(), 'categories' => $this->categories(), 'featured' => $this->cards()->where('is_featured', true)->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get(), 'latest' => $this->cards()->orderByDesc('created_at')->orderByDesc('id')->limit(5)->get()]);
     }
 
     public function index(CatalogRequest $request): View
@@ -68,6 +68,6 @@ class StorefrontController extends Controller
     {
         $product = $this->products()->where('slug', $slug)->with(['category' => fn ($query) => $query->where('status', 'active'), 'brand' => fn ($query) => $query->where('status', 'active'), 'images', 'variants' => fn ($query) => $query->orderBy('id')->with(['values.attribute', 'values.value'])])->firstOrFail();
 
-        return view('pages.products.show', ['categories' => $this->categories(), 'product' => $product, 'related' => $this->cards()->where('category_id', $product->category_id)->whereKeyNot($product->id)->orderByDesc('created_at')->orderByDesc('id')->limit(4)->get()]);
+        return view('pages.products.show', ['categories' => $this->categories(), 'product' => $product, 'related' => $this->cards()->whereKeyNot($product->id)->orderByRaw('CASE WHEN category_id = ? THEN 0 ELSE 1 END', [$product->category_id])->orderByDesc('created_at')->orderByDesc('id')->limit(2)->get()]);
     }
 }
