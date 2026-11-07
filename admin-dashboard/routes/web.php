@@ -1,0 +1,68 @@
+<?php
+
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\ManagementController;
+use App\Http\Controllers\WorkspaceController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', fn () => auth()->check() ? redirect()->to(auth()->user()->workspaceHome()) : redirect()->route('dashboard'));
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:20,1')->name('login.store');
+});
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::get('/manage/{resource}', [ManagementController::class, 'index'])->name('management.index');
+    Route::get('/manage/{resource}/create', [ManagementController::class, 'form'])->name('management.create');
+    Route::post('/manage/{resource}', [ManagementController::class, 'save'])->name('management.store');
+    Route::get('/manage/{resource}/{id}/edit', [ManagementController::class, 'form'])->whereNumber('id')->name('management.edit');
+    Route::put('/manage/{resource}/{id}', [ManagementController::class, 'save'])->whereNumber('id')->name('management.update');
+    Route::delete('/manage/{resource}/{id}', [ManagementController::class, 'archive'])->whereNumber('id')->name('management.archive');
+    Route::patch('/manage/{resource}/{id}/restore', [ManagementController::class, 'restore'])->whereNumber('id')->name('management.restore');
+    Route::get('/products/{product}/variants', [ManagementController::class, 'variants'])->whereNumber('product')->name('variants');
+    Route::get('/products/{product}/variants/create', [ManagementController::class, 'variantForm'])->whereNumber('product')->name('variants.create');
+    Route::get('/products/{product}/variants/{variant}/edit', [ManagementController::class, 'variantForm'])->whereNumber(['product', 'variant'])->name('variants.edit');
+    Route::post('/products/{product}/variants', [ManagementController::class, 'saveVariant'])->whereNumber('product')->name('variants.store');
+    Route::put('/products/{product}/variants/{variant}', [ManagementController::class, 'saveVariant'])->whereNumber(['product', 'variant'])->name('variants.update');
+    Route::get('/products/{product}/images', [ManagementController::class, 'images'])->whereNumber('product')->name('images');
+    Route::post('/products/{product}/images', [ManagementController::class, 'uploadImage'])->whereNumber('product')->name('images.store');
+    Route::patch('/products/{product}/images/{image}', [ManagementController::class, 'primaryImage'])->whereNumber(['product', 'image'])->name('images.primary');
+    Route::delete('/products/{product}/images/{image}', [ManagementController::class, 'removeImage'])->whereNumber(['product', 'image'])->name('images.remove');
+    Route::get('/reservations', [ManagementController::class, 'reservations'])->name('inventory.reservations');
+    Route::post('/orders/{order}/transition', [ManagementController::class, 'transition'])->whereNumber('order')->name('orders.transition');
+    Route::get('/customers/{customer}', [ManagementController::class, 'customer'])->whereNumber('customer')->name('customers.show');
+    Route::patch('/customers/{customer}', [ManagementController::class, 'customerStatus'])->whereNumber('customer')->name('customers.status');
+    Route::get('/payments', [ManagementController::class, 'payments'])->name('payments');
+    Route::get('/refunds', [ManagementController::class, 'refunds'])->name('refunds');
+    Route::post('/refunds', [ManagementController::class, 'requestRefund'])->name('refunds.store');
+    Route::patch('/refunds/{refund}', [ManagementController::class, 'reviewRefund'])->whereNumber('refund')->name('refunds.review');
+    Route::get('/staff', [ManagementController::class, 'staffList'])->name('staff');
+    Route::get('/staff/create', [ManagementController::class, 'staffForm'])->name('staff.create');
+    Route::get('/staff/{staff}/edit', [ManagementController::class, 'staffForm'])->whereNumber('staff')->name('staff.edit');
+    Route::post('/staff', [ManagementController::class, 'saveStaff'])->name('staff.store');
+    Route::put('/staff/{staff}', [ManagementController::class, 'saveStaff'])->whereNumber('staff')->name('staff.update');
+    Route::get('/audit', [ManagementController::class, 'audit'])->name('audit');
+    Route::get('/store-settings', [ManagementController::class, 'storeSettings'])->name('store-settings');
+    Route::put('/store-settings', [ManagementController::class, 'saveStoreSettings'])->name('store-settings.update');
+    Route::get('/dashboard', [WorkspaceController::class, 'dashboard'])->name('dashboard');
+    Route::get('/notifications', [WorkspaceController::class, 'notifications'])->name('notifications');
+    Route::get('/inventory', [WorkspaceController::class, 'inventory'])->name('inventory');
+    Route::get('/inventory/{variant}/history', [WorkspaceController::class, 'history'])->whereNumber('variant')->name('inventory.history');
+    Route::post('/inventory/{variant}/adjust', [WorkspaceController::class, 'adjust'])->whereNumber('variant')->name('inventory.adjust');
+    Route::patch('/inventory/{variant}/threshold', [ManagementController::class, 'threshold'])->whereNumber('variant')->name('inventory.threshold');
+    Route::get('/products', [WorkspaceController::class, 'products'])->name('products');
+    Route::get('/products/create', [WorkspaceController::class, 'productForm'])->name('products.create');
+    Route::post('/products', [WorkspaceController::class, 'saveProduct'])->name('products.store');
+    Route::get('/products/{product}/edit', [WorkspaceController::class, 'productForm'])->whereNumber('product')->name('products.edit');
+    Route::put('/products/{product}', [WorkspaceController::class, 'saveProduct'])->whereNumber('product')->name('products.update');
+    Route::delete('/products/{product}', [WorkspaceController::class, 'archiveProduct'])->whereNumber('product')->name('products.archive');
+    Route::patch('/products/{product}/restore', [WorkspaceController::class, 'restoreProduct'])->whereNumber('product')->name('products.restore');
+    Route::get('/orders', [WorkspaceController::class, 'orders'])->name('orders');
+    Route::get('/orders/{order}', [WorkspaceController::class, 'order'])->whereNumber('order')->name('orders.show');
+    Route::get('/customers', [WorkspaceController::class, 'customers'])->name('customers');
+    Route::get('/reports', [WorkspaceController::class, 'reports'])->name('reports');
+    Route::get('/reports/export', [WorkspaceController::class, 'export'])->name('reports.export');
+    Route::get('/settings', [WorkspaceController::class, 'settings'])->name('settings');
+    Route::get('/settings/account', [WorkspaceController::class, 'settings'])->name('settings.account');
+    Route::get('/settings/appearance', [WorkspaceController::class, 'appearance'])->name('settings.appearance');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+});

@@ -1,0 +1,5 @@
+@extends('layouts.workspace')
+@section('title','Reports')
+@section('workspace')
+<div class="nx-page-title"><div><h1>Reports</h1><p>Review your selected period and export order data.</p></div><a class="nx-button" href="{{ route('reports.export',['start'=>$start->toDateString(),'end'=>$end->toDateString()]) }}"><x-admin-icon name="download" /> Export CSV</a></div><section class="nx-panel"><form method="GET" class="nx-filter-form"><label>From<input type="date" name="start" value="{{ $start->toDateString() }}" required></label><label>To<input type="date" name="end" value="{{ $end->toDateString() }}" required></label><button type="submit" class="nx-button">Apply dates</button></form><div class="nx-report-summary"><article><span>Orders in selected period</span><strong>{{ number_format($count) }}</strong></article><article><span>Paid, non-cancelled order value</span><strong>${{ number_format($paid,2) }}</strong></article></div><p class="nx-panel-note">Reports use UTC dates. CSV contains order numbers, dates, amounts, and payment/order statuses. Paid order value is not a profit calculation.</p></section>
+@endsection

@@ -1,0 +1,5 @@
+@extends('layouts.workspace')
+@section('title','Staff accounts')
+@section('workspace')
+<div class="nx-page-title"><div><h1>Staff & permissions</h1><p>Grant access only to the modules each administrator needs.</p></div><a class="nx-button" href="{{ route('staff.create') }}"><x-admin-icon name="plus" /> Add administrator</a></div><section class="nx-panel"><div class="nx-table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Permissions</th><th>Actions</th></tr></thead><tbody>@foreach($staff as $person)<tr><td>{{ $person->name }}</td><td>{{ $person->email }}</td><td>{{ $person->status }}</td><td class="nx-wrap">{{ $person->admin_permissions === null ? 'Full access (owner)' : implode(', ',json_decode($person->admin_permissions,true)??[]) }}</td><td>@if($person->id!==auth()->id())<a class="nx-icon-button" href="{{ route('staff.edit',$person->id) }}" aria-label="Edit administrator"><x-admin-icon name="edit" /></a>@else<span class="nx-muted">Your account</span>@endif</td></tr>@endforeach</tbody></table></div><x-workspace-pagination :paginator="$staff" /></section>
+@endsection

@@ -1,0 +1,5 @@
+@extends('layouts.workspace')
+@section('title','Product variants')
+@section('workspace')
+<div class="nx-page-title"><div><a href="{{ route('products.edit',$product->id) }}" class="nx-back-link">← Product details</a><h1>{{ $product->name }} · Variants</h1><p>Variant prices, attribute combinations and low-stock thresholds.</p></div><a class="nx-button" href="{{ route('variants.create',$product->id) }}"><x-admin-icon name="plus" /> Add variant</a></div><section class="nx-panel"><div class="nx-table-wrap"><table><thead><tr><th>Variant</th><th>SKU</th><th>Price</th><th>Stock</th><th>Reserved</th><th>Low-stock threshold</th><th>Status</th><th>Actions</th></tr></thead><tbody>@foreach($variants as $variant)<tr><td>{{ $variant->name }}</td><td>{{ $variant->sku }}</td><td>${{ number_format($variant->price,2) }}</td><td>{{ $variant->stock_quantity }}</td><td>{{ $variant->reserved_quantity }}</td><td>{{ $variant->low_stock_threshold }}</td><td>{{ ucfirst($variant->status) }}</td><td><a class="nx-button small secondary" href="{{ route('variants.edit',[$product->id,$variant->id]) }}">Edit</a></td></tr>@endforeach</tbody></table></div></section>
+@endsection

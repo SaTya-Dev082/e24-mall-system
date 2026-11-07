@@ -1,0 +1,37 @@
+@props(['name'])
+@php
+    $paths = [
+        'search' => ['M21 21l-5-5', 'M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z'],
+        'bell' => ['M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9', 'M10 21h4'],
+        'chevron' => ['m8 10 4 4 4-4'],
+        'collapse' => ['m13 6-6 6 6 6m6-12-6 6 6 6'],
+        'users' => ['M15 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM3 21v-3a6 6 0 0 1 12 0v3M18 3a4 4 0 0 1 0 8m0 4a5 5 0 0 1 3 5'],
+        'settings' => ['m9 3-1 3-3 1-2 4 2 2v4l4 2 3-1 3 1 4-2v-4l2-2-2-4-3-1-1-3H9Z', 'M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z'],
+        'report' => ['M5 3h10l4 4v14H5V3Z', 'M14 3v5h5M8 12h8M8 16h8'],
+        'moon' => ['M21 13a9 9 0 0 1-10-10 9 9 0 1 0 10 10Z'],
+        'menu' => ['M4 6h16M4 12h16M4 18h16'],
+        'plus' => ['M12 5v14M5 12h14'],
+        'edit' => ['m15 4 5 5-10 10-6 1 1-6L15 4Z', 'm12 7 5 5'],
+        'eye' => ['M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z', 'M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'],
+        'download' => ['M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5'],
+        'trash' => ['M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7'],
+        'refresh' => ['M20 7V2l-3 3a8 8 0 1 0 3 10M20 7h-5'],
+        'bag' => ['M5 7h14l1 14H4L5 7Z', 'M9 7V5a3 3 0 0 1 6 0v2'],
+        'store' => ['M3 10h18l-2-6H5l-2 6Z', 'M4 10v10h16V10', 'M9 20v-6h6v6', 'M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0'],
+        'overview' => ['M3 3h7v7H3V3ZM14 3h7v7h-7V3ZM3 14h7v7H3v-7ZM14 14h7v7h-7v-7Z'],
+        'box' => ['m12 3 9 5v9l-9 5-9-5V8l9-5Z', 'm3 8 9 5 9-5M12 13v9M7.5 5.5l9 5'],
+        'tag' => ['M3 3h8l10 10-8 8L3 11V3Z', 'M7 7h.01'],
+        'orders' => ['M6 3h12v18l-3-2-3 2-3-2-3 2V3Z', 'M9 7h6M9 11h6M9 15h3'],
+        'chart' => ['M4 3v17h17', 'm8 14 4-5 4 3 5-7'],
+        'lock' => ['M7 10V7a5 5 0 0 1 10 0v3', 'M5 10h14v11H5V10Z', 'M12 14v3'],
+        'spark' => ['m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z'],
+        'shield' => ['m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z', 'm8 12 3 3 5-6'],
+        'logout' => ['M9 4H4v16h5', 'M9 12h12m-4-4 4 4-4 4'],
+        'calendar' => ['M4 5h16v16H4V5Z', 'M16 3v4M8 3v4M4 10h16M8 14h2M14 14h2M8 17h2'],
+        'arrow' => ['M4 12h16m-6-6 6 6-6 6'],
+        'wallet' => ['M20 8V5H5a2 2 0 0 0 0 4h16v12H5a2 2 0 0 1-2-2V7', 'M21 13h-6v4h6'],
+        'layers' => ['m12 3 9 5-9 5-9-5 9-5Z', 'm3 12 9 5 9-5M3 16l9 5 9-5'],
+        'check' => ['m5 12 4 4L19 6'],
+    ];
+@endphp
+<svg {{ $attributes->class(['ui-icon']) }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">@foreach ($paths[$name] ?? [] as $path)<path d="{{ $path }}"/>@endforeach</svg>

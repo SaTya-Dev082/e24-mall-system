@@ -1,0 +1,5 @@
+@extends('layouts.workspace')
+@section('title','Store settings')
+@section('workspace')
+<div class="nx-page-title"><div><h1>Store settings</h1><p>Public store identity and support contact information.</p></div></div><section class="nx-panel nx-form-panel"><form method="POST" action="{{ route('store-settings.update') }}">@csrf @method('PUT')<div class="nx-form-grid">@foreach(['store_name'=>'Store name','support_email'=>'Support email','support_phone'=>'Support phone'] as $field=>$label)<div><label for="store-{{ $field }}">{{ $label }}</label><input id="store-{{ $field }}" name="{{ $field }}" value="{{ old($field,$item->$field??'') }}" type="{{ $field==='support_email'?'email':'text' }}" @required($field==='store_name')></div>@endforeach<div><label for="store-currency">Currency</label><select id="store-currency" name="currency"><option value="USD">USD — US Dollar</option></select><p class="nx-field-help">Existing catalog prices and reports use USD.</p></div></div><div class="nx-dialog-footer"><button class="nx-button" data-busy-submit>Save store settings</button></div></form></section>
+@endsection

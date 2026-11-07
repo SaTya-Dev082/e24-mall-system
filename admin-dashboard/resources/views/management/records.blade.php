@@ -1,0 +1,5 @@
+@extends('layouts.workspace')
+@section('title',$title)
+@section('workspace')
+<div class="nx-page-title"><div><h1>{{ $title }}</h1><p>{{ $description }}</p></div></div><section class="nx-panel">@if(request()->routeIs('inventory.reservations'))<form method="GET" class="nx-filter-form"><select name="status" aria-label="Reservation status"><option value="">All reservations</option>@foreach(['pending','committed','released','expired'] as $status)<option value="{{ $status }}" @selected(request('status')===$status)>{{ ucfirst($status) }}</option>@endforeach</select><button class="nx-button">Filter</button></form>@endif<div class="nx-table-wrap"><table><thead><tr>@foreach($columns as $column)<th>{{ $column }}</th>@endforeach</tr></thead><tbody>@forelse($rows as $row)<tr>@foreach($columns as $key=>$column)<td class="{{ $key==='action'?'nx-wrap':'' }}">{{ $row->$key ?? '—' }}</td>@endforeach</tr>@empty<tr><td colspan="{{ count($columns) }}"><div class="nx-empty"><h3>No records found</h3></div></td></tr>@endforelse</tbody></table></div><x-workspace-pagination :paginator="$rows" /></section>
+@endsection

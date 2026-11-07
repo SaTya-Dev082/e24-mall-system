@@ -1,0 +1,2 @@
+@props(['paginator'])
+<div class="nx-pagination"><span>{{ $paginator->total() ? $paginator->firstItem().'–'.$paginator->lastItem() : '0' }} of {{ number_format($paginator->total()) }} results</span><div>@if($paginator->previousPageUrl())<a href="{{ $paginator->previousPageUrl() }}" class="nx-button secondary small">← Previous</a>@endif<span>Page {{ $paginator->currentPage() }} / {{ $paginator->lastPage() }}</span>@if($paginator->nextPageUrl())<a href="{{ $paginator->nextPageUrl() }}" class="nx-button secondary small">Next →</a>@endif</div></div>

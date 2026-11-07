@@ -1,0 +1,58 @@
+[
+  {
+    "product_id": 1,
+    "path": "/images/catalog/iphone-16-pro-hero.jpg",
+    "source_url": "https://www.apple.com/newsroom/images/2024/09/apple-debuts-iphone-16-pro-and-iphone-16-pro-max/article/Apple-iPhone-16-Pro-hero-240909_inline.jpg.large.jpg",
+    "alt_text": "Apple iPhone 16 Pro \u2014 official product image",
+    "bytes": 63712
+  },
+  {
+    "product_id": 1,
+    "path": "/images/catalog/iphone-16-pro-lineup.jpg",
+    "source_url": "https://www.apple.com/newsroom/images/2024/09/apple-debuts-iphone-16-pro-and-iphone-16-pro-max/article/Apple-iPhone-16-Pro-finish-lineup-240909_big.jpg.large.jpg",
+    "alt_text": "Apple iPhone 16 Pro finishes",
+    "bytes": 56089
+  },
+  {
+    "product_id": 2,
+    "path": "/images/catalog/galaxy-s26-design.jpg",
+    "source_url": "https://images.samsung.com/is/image/samsung/assets/us/smartphones/galaxy-s26/images/galaxy-s26-features-highlights-design-start-mo.jpg?nocache=true",
+    "alt_text": "Samsung Galaxy S26 series \u2014 official design image",
+    "bytes": 32653
+  },
+  {
+    "product_id": 3,
+    "path": "/images/catalog/macbook-air-hero.jpg",
+    "source_url": "https://www.apple.com/newsroom/images/2025/03/apple-introduces-the-new-macbook-air-with-the-m4-chip-and-a-sky-blue-color/article/Apple-MacBook-Air-hero-250305_big.jpg.large.jpg",
+    "alt_text": "MacBook Air M4 \u2014 representative image; listing model requires confirmation",
+    "bytes": 80806
+  },
+  {
+    "product_id": 3,
+    "path": "/images/catalog/macbook-air-top.jpg",
+    "source_url": "https://www.apple.com/newsroom/images/2025/03/apple-introduces-the-new-macbook-air-with-the-m4-chip-and-a-sky-blue-color/article/Apple-MacBook-Air-top-view-250305_big.jpg.large.jpg",
+    "alt_text": "MacBook Air M4 top view \u2014 representative image",
+    "bytes": 19905
+  },
+  {
+    "product_id": 4,
+    "path": "/images/catalog/nike-running-shoe.jpg",
+    "source_url": "https://www.nike.ae/dw/image/v2/BDVB_PRD/on/demandware.static/-/Sites-akeneo-master-catalog/default/dwf3c0ec92/nk/f61/0/5/3/1/8/f6105318_3c83_4836_ab5b_96f2cd95de00.jpg?sw=700&sh=700&sm=fit&q=100&strip=false",
+    "alt_text": "Nike Pegasus 41 \u2014 representative running shoe; listing model requires confirmation",
+    "bytes": 20475
+  },
+  {
+    "product_id": 4,
+    "path": "/images/catalog/nike-running-shoe-angle.jpg",
+    "source_url": "https://www.nike.ae/dw/image/v2/BDVB_PRD/on/demandware.static/-/Sites-akeneo-master-catalog/default/dwbf732291/nk/23b/f/1/c/b/4/23bf1cb4_aaca_4428_962a_054432a513eb.jpg?sw=700&sh=700&sm=fit&q=100&strip=false",
+    "alt_text": "Nike Pegasus 41 alternate view \u2014 representative image",
+    "bytes": 20951
+  },
+  {
+    "product_id": 5,
+    "path": "/images/catalog/iphone-16-pro-hero.jpg",
+    "source_url": "https://www.apple.com/newsroom/images/2024/09/apple-debuts-iphone-16-pro-and-iphone-16-pro-max/article/Apple-iPhone-16-Pro-hero-240909_inline.jpg.large.jpg",
+    "alt_text": "Illustrative smartphone: iPhone 16 Pro; generic Mobile listing model is unspecified",
+    "bytes": 63712
+  }
+]
