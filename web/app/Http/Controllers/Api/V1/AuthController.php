@@ -36,7 +36,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $user = User::query()->where('email', $data['email'])->first();
+        $user = User::query()->whereRaw('LOWER(TRIM(email)) = ?', [strtolower(trim($data['email']))])->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
@@ -44,7 +44,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if ($user->status !== 'active') {
+        if ($user->status !== 'active' || $user->deleted_at !== null) {
             throw ValidationException::withMessages([
                 'email' => ['This account is not active.'],
             ]);

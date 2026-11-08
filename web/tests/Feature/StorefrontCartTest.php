@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureActiveCustomer;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -11,6 +12,14 @@ use Tests\TestCase;
 class StorefrontCartTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Retain coverage for legacy guest carts; authentication is tested in CustomerAccountTest.
+        $this->withoutMiddleware(EnsureActiveCustomer::class);
+    }
 
     private function option(string $slug = 'lamp'): ProductVariant
     {

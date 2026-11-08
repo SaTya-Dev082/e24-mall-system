@@ -30,6 +30,11 @@ class ValidateStorefrontSession
             $request->session()->put('customer_password_hash', $user->password);
         }
 
-        return $next($request);
+        $response = $next($request);
+        if ($request->routeIs('login*', 'register*', 'password.*', 'account.*', 'verification.*')) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        }
+
+        return $response;
     }
 }

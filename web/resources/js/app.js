@@ -293,11 +293,19 @@ document.querySelectorAll('[data-card-cart]').forEach(form => {
             const send = () => fetch(form.action, { method: 'POST', headers: { Accept: 'application/json' }, body: data });
             let response = await send();
             let result = await response.json();
+            if (response.status === 401 && result.redirect) {
+                window.location.assign(result.redirect);
+                return;
+            }
             if (response.status === 409 && result.options) {
                 const option = await chooseCartOption(result.options);
                 if (!option) return;
                 data.set('variant', option);
                 response = await send(); result = await response.json();
+                if (response.status === 401 && result.redirect) {
+                    window.location.assign(result.redirect);
+                    return;
+                }
             }
             if (!response.ok) {
                 feedback.textContent = Object.values(result.errors || {}).flat()[0] || result.message || 'Could not add item. Please try again.';
@@ -310,6 +318,83 @@ document.querySelectorAll('[data-card-cart]').forEach(form => {
             feedback.textContent = 'Connection problem. Check your cart before retrying.';
         } finally {
             button.disabled = false; button.textContent = 'Add to Cart';
+        }
+    });
+});
+
+// Authentication writes are submitted once; connection failures are never automatically retried.
+document.querySelectorAll('[data-auth-form]').forEach(form => {
+    const button = form.querySelector('button[type="submit"]');
+    const label = button.textContent;
+    const errors = document.querySelector('[data-auth-errors]');
+    let busy = false;
+    const restore = () => {
+        busy = false;
+        button.disabled = false;
+        button.textContent = label;
+        form.removeAttribute('aria-busy');
+    };
+    window.addEventListener('pageshow', event => {
+        restore();
+        if (event.persisted) form.querySelectorAll('input[type="password"]').forEach(input => { input.value = ''; });
+    });
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (busy || !form.reportValidity()) return;
+        busy = true;
+        const data = new FormData(form);
+        button.disabled = true;
+        button.textContent = 'Please wait…';
+        form.setAttribute('aria-busy', 'true');
+        errors.hidden = true;
+        errors.replaceChildren();
+        document.querySelector('[data-auth-server-errors]')?.remove();
+        form.querySelectorAll('[data-auth-field-error]').forEach(error => error.remove());
+        form.querySelectorAll('[aria-invalid]').forEach(input => { input.removeAttribute('aria-invalid'); input.removeAttribute('aria-describedby'); });
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST', headers: { Accept: 'application/json' }, body: data,
+                signal: AbortSignal.timeout(45000),
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (!result.redirect) throw new Error('Missing authentication destination');
+                window.location.assign(result.redirect);
+                return;
+            }
+            if (response.status === 422) {
+                const result = await response.json();
+                let first;
+                Object.entries(result.errors || {}).forEach(([name, messages]) => {
+                    const input = form.elements.namedItem(name);
+                    if (!(input instanceof HTMLInputElement)) return;
+                    const error = document.createElement('p');
+                    error.className = 'auth-field-error';
+                    error.dataset.authFieldError = name;
+                    error.id = `${input.id}-error`;
+                    error.textContent = Array.isArray(messages) ? messages[0] : String(messages);
+                    input.setAttribute('aria-invalid', 'true');
+                    input.setAttribute('aria-describedby', error.id);
+                    input.after(error);
+                    first ||= input;
+                });
+                if (first) first.focus();
+                else { errors.textContent = 'Please check your details and try again.'; errors.hidden = false; errors.focus(); }
+            } else {
+                errors.textContent = response.status === 429
+                    ? 'Too many requests. Please wait a minute before trying again.'
+                    : response.status === 419
+                        ? 'Your session expired. Reload this page before trying again.'
+                        : 'We could not confirm your request. If you were registering, try signing in before submitting again.';
+                errors.hidden = false;
+                errors.focus();
+            }
+        } catch {
+            errors.textContent = 'Connection interrupted. Your request may have completed. If you were registering, try signing in before submitting again.';
+            errors.hidden = false;
+            errors.focus();
+        } finally {
+            restore();
         }
     });
 });

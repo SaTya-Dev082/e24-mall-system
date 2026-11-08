@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Rules\SafeCustomerPassword;
+use App\Services\CustomerVerificationDelivery;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,7 +26,7 @@ class CustomerRecoveryController extends Controller
     public function sendReset(Request $request): RedirectResponse
     {
         $data = $request->validate(['email' => ['required', 'email', 'max:255']]);
-        Password::broker('users')->sendResetLink(['email' => strtolower(trim($data['email'])), 'role' => 'customer', 'status' => 'active', 'deleted_at' => null]);
+        Password::broker('users')->sendResetLink(['role' => 'customer', 'status' => 'active', 'deleted_at' => null, fn (Builder $query) => $query->whereRaw('LOWER(TRIM(email)) = ?', [strtolower(trim($data['email']))])]);
 
         return back()->with('account_status', 'If an active customer account matches this email, a reset link has been requested.');
     }
@@ -37,8 +40,11 @@ class CustomerRecoveryController extends Controller
 
     public function reset(Request $request): RedirectResponse
     {
-        $data = $request->validate(['token' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255'], 'password' => ['required', 'string', 'confirmed', 'max:128', PasswordRule::min(12)]]);
-        $status = Password::broker('users')->reset($data + ['role' => 'customer', 'status' => 'active', 'deleted_at' => null], function (User $user, string $password): void {
+        $data = $request->validate(['token' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255'], 'password' => ['bail', 'required', 'string', 'confirmed', 'max:256', PasswordRule::min(8), new SafeCustomerPassword]]);
+        $credentials = $data;
+        unset($credentials['email']);
+        $credentials += ['role' => 'customer', 'status' => 'active', 'deleted_at' => null, fn (Builder $query) => $query->whereRaw('LOWER(TRIM(email)) = ?', [strtolower(trim($data['email']))])];
+        $status = Password::broker('users')->reset($credentials, function (User $user, string $password): void {
             $user->forceFill(['password' => Hash::make($password), 'remember_token' => Str::random(60)])->save();
             event(new PasswordReset($user));
         });
@@ -54,10 +60,11 @@ class CustomerRecoveryController extends Controller
         return view('pages.account.verify-email');
     }
 
-    public function resendVerification(Request $request): RedirectResponse
+    public function resendVerification(Request $request, CustomerVerificationDelivery $delivery): RedirectResponse
     {
         if (! $request->user('web')->hasVerifiedEmail()) {
-            $request->user('web')->sendEmailVerificationNotification();
+            $delivery->request($request->user('web'));
+            $delivery->deliver($request->user('web')->id);
         }
 
         return back()->with('account_status', 'Verification email requested.');

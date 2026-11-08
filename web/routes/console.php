@@ -20,6 +20,7 @@ Artisan::command('inventory:expire-reservations', function (): void {
 })->purpose('Release expired inventory reservations safely');
 
 Schedule::command('inventory:expire-reservations')->everyMinute()->withoutOverlapping();
+Schedule::command('customers:deliver-verification')->everyMinute()->withoutOverlapping();
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

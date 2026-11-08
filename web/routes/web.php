@@ -14,7 +14,7 @@ Route::get('/products/{slug}', [StorefrontController::class, 'show'])->name('sto
 
 Route::get('/cart', [CartController::class, 'index'])->name('storefront.cart.index')->block(10, 10);
 Route::patch('/cart/items/{variant}', [CartController::class, 'update'])->whereNumber('variant')->middleware('throttle:60,1')->name('storefront.cart.update')->block(10, 10);
-Route::post('/cart/products/{slug}', [CartController::class, 'store'])->middleware('throttle:60,1')->name('storefront.cart.store')->block(10, 10);
+Route::post('/cart/products/{slug}', [CartController::class, 'store'])->middleware(['customer', 'throttle:60,1'])->name('storefront.cart.store')->block(10, 10);
 Route::delete('/cart/items/{variant}', [CartController::class, 'remove'])->whereNumber('variant')->name('storefront.cart.remove')->block(10, 10);
 
 Route::post('/cart/selection', [CartController::class, 'selection'])->name('storefront.cart.selection')->block(10, 10);
@@ -22,8 +22,8 @@ Route::post('/cart/remove-selected', [CartController::class, 'removeSelected'])-
 
 Route::get('/login', [CustomerAccountController::class, 'loginForm'])->name('login');
 Route::get('/register', [CustomerAccountController::class, 'registerForm'])->name('register');
-Route::post('/login', [CustomerAccountController::class, 'login'])->middleware('throttle:20,1')->name('login.store')->block(10, 10);
-Route::post('/register', [CustomerAccountController::class, 'register'])->middleware('throttle:5,1')->name('register.store')->block(10, 10);
+Route::post('/login', [CustomerAccountController::class, 'login'])->middleware('throttle:customer-login')->name('login.store')->block(10, 10);
+Route::post('/register', [CustomerAccountController::class, 'register'])->middleware('throttle:customer-register')->name('register.store')->block(10, 10);
 Route::post('/logout', [CustomerAccountController::class, 'logout'])->middleware('customer')->name('logout')->block(10, 10);
 Route::get('/forgot-password', [CustomerRecoveryController::class, 'forgot'])->name('password.request');
 Route::post('/forgot-password', [CustomerRecoveryController::class, 'sendReset'])->middleware('throttle:5,1')->name('password.email');

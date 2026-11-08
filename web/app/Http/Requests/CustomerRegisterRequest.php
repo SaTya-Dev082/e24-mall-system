@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\SafeCustomerPassword;
+use App\Rules\UniqueAccountEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -21,6 +23,6 @@ class CustomerRegisterRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255', 'unique:users,email'], 'password' => ['required', 'string', 'confirmed', 'max:128', Password::min(12)], 'phone' => ['nullable', 'string', 'max:50', 'unique:users,phone'], 'role' => ['prohibited'], 'status' => ['prohibited'], 'admin_permissions' => ['prohibited']];
+        return ['name' => ['required', 'string', 'max:255'], 'email' => ['bail', 'required', 'email', 'max:255', new UniqueAccountEmail], 'password' => ['bail', 'required', 'string', 'confirmed', 'max:256', Password::min(8), new SafeCustomerPassword], 'phone' => ['nullable', 'string', 'max:50', 'unique:users,phone'], 'role' => ['prohibited'], 'status' => ['prohibited'], 'admin_permissions' => ['prohibited']];
     }
 }

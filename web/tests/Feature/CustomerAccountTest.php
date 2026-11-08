@@ -34,6 +34,28 @@ class CustomerAccountTest extends TestCase
         return User::factory()->create($data + ['email' => 'buyer@example.com', 'password' => 'Correct-password-123', 'role' => 'customer', 'status' => 'active']);
     }
 
+    public function test_login_remember_me_sets_persistent_authentication_cookie(): void
+    {
+        $user = $this->customer();
+        $this->post('/login', ['email' => $user->email, 'password' => 'Correct-password-123', 'remember' => '1'])
+            ->assertRedirect(route('account.profile'))
+            ->assertCookie(Auth::guard('web')->getRecallerName());
+        $this->assertAuthenticatedAs($user, 'web');
+    }
+
+    public function test_guests_must_sign_in_before_adding_or_choosing_options(): void
+    {
+        $variant = $this->option();
+        $variant->product->variants()->create(['sku' => 'lamp-red', 'name' => 'Red', 'price' => '25.00', 'stock_quantity' => 5, 'status' => 'active']);
+        $this->postJson('/cart/products/lamp')->assertUnauthorized()->assertJsonPath('redirect', route('login'))->assertJsonMissingPath('options');
+        $this->post('/cart/products/lamp', ['variant' => $variant->id, 'intent' => 'buy_now'])->assertRedirect(route('login'))->assertSessionMissing('storefront_cart');
+        $this->assertDatabaseCount('cart_items', 0);
+        $user = $this->customer();
+        $this->post('/login', ['email' => $user->email, 'password' => 'Correct-password-123'])->assertRedirect(route('storefront.products.show', 'lamp'));
+        $this->postJson('/cart/products/lamp')->assertStatus(409)->assertJsonCount(2, 'options');
+        $this->postJson('/cart/products/lamp', ['variant' => $variant->id])->assertOk()->assertJsonPath('count', 1);
+    }
+
     public function test_registration_uses_customer_role_and_rejects_privilege_fields(): void
     {
         Notification::fake();
@@ -51,7 +73,7 @@ class CustomerAccountTest extends TestCase
     {
         $variant = $this->option();
         $user = $this->customer();
-        $this->post('/cart/products/lamp', ['variant' => $variant->id, 'quantity' => 2]);
+        $this->withSession(['storefront_cart' => [$variant->id => 2], 'storefront_cart_merge_key' => str_repeat('a', 64)]);
         $this->get('/checkout')->assertRedirect(route('login'));
         $this->get('/login')->assertOk();
         $this->post('/login', ['email' => $user->email, 'password' => 'Correct-password-123'])->assertRedirect(route('checkout.index'));
@@ -84,8 +106,7 @@ class CustomerAccountTest extends TestCase
         $user = $this->customer();
         $this->actingAs($user, 'web')->post('/cart/products/lamp', ['quantity' => 3]);
         $this->post('/logout');
-        $this->post('/cart/products/lamp', ['quantity' => 3]);
-        $this->post('/cart/products/chair');
+        $this->withSession(['storefront_cart' => [$variant->id => 3, $other->id => 1], 'storefront_cart_merge_key' => str_repeat('b', 64)]);
         $this->post('/cart/selection', ['selected' => [$variant->id]]);
         $guestState = session('storefront_cart');
         $mergeKey = session('storefront_cart_merge_key');
@@ -127,7 +148,7 @@ class CustomerAccountTest extends TestCase
     public function test_cart_mutations_return_server_rendered_json_and_current_totals(): void
     {
         $variant = $this->option();
-        $this->post('/cart/products/lamp');
+        $this->withSession(['storefront_cart' => [$variant->id => 1]]);
         $this->patchJson('/cart/items/'.$variant->id, ['quantity' => 2])->assertOk()->assertJsonPath('count', 2)->assertJsonStructure(['html']);
         $this->postJson('/cart/selection', ['selected' => []])->assertOk()->assertJsonPath('count', 2);
         $this->get('/cart')->assertViewHas('subtotal', '0.00');
