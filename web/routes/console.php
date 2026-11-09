@@ -21,6 +21,7 @@ Artisan::command('inventory:expire-reservations', function (): void {
 
 Schedule::command('inventory:expire-reservations')->everyMinute()->withoutOverlapping();
 Schedule::command('customers:deliver-verification')->everyMinute()->withoutOverlapping();
+Schedule::command('notifications:dispatch-pending')->everyMinute()->withoutOverlapping();
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

@@ -37,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer('layouts.storefront', function (View $view): void {
             $view->with('cartCount', app(StorefrontCart::class)->count(request()));
             $view->with('customer', Auth::guard('web')->user());
+            $view->with('customerUnreadCount', Auth::guard('web')->user()?->unreadNotifications()->count() ?? 0);
         });
     }
 }

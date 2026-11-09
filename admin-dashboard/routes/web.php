@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CustomerAnnouncementController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,10 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:20,1')->name('login.store');
 });
 Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::get('/customer-notifications', [CustomerAnnouncementController::class, 'index'])->name('customer-announcements.index');
+    Route::get('/customer-notifications/recipients', [CustomerAnnouncementController::class, 'recipients'])->middleware('throttle:60,1')->name('customer-announcements.recipients');
+    Route::post('/customer-notifications', [CustomerAnnouncementController::class, 'store'])->middleware('throttle:10,1')->name('customer-announcements.store');
+    Route::post('/customer-notifications/{campaign}/retry', [CustomerAnnouncementController::class, 'retry'])->whereUuid('campaign')->name('customer-announcements.retry');
     Route::get('/manage/{resource}', [ManagementController::class, 'index'])->name('management.index');
     Route::get('/manage/{resource}/create', [ManagementController::class, 'form'])->name('management.create');
     Route::post('/manage/{resource}', [ManagementController::class, 'save'])->name('management.store');

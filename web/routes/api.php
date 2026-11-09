@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\BrandController as AdminBrandController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Api\V1\Admin\CustomerAnnouncementController;
 use App\Http\Controllers\Api\V1\Admin\InventoryController;
 use App\Http\Controllers\Api\V1\Admin\ManagementController;
 use App\Http\Controllers\Api\V1\Admin\ProductController as AdminProductController;
@@ -26,6 +27,8 @@ Route::prefix('v1')->group(function (): void {
     Route::get('/products/{product:slug}', [ProductController::class, 'show']);
 
     Route::prefix('admin')->middleware(['auth:sanctum', 'admin', AuditAdminMutation::class])->group(function (): void {
+        Route::post('/customer-notifications', [CustomerAnnouncementController::class, 'store'])->middleware('throttle:10,1');
+        Route::post('/customer-notifications/{campaign}/retry', [CustomerAnnouncementController::class, 'retry'])->whereUuid('campaign')->middleware('throttle:10,1');
         $management = ManagementController::class;
         Route::post('/manage/{resource}', [$management, 'store']);
         Route::patch('/manage/{resource}/{id}', [$management, 'update'])->whereNumber('id');

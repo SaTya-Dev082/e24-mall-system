@@ -3,6 +3,7 @@
 @section('workspace')
 <div class="nx-page-title">
     <div><h1>Notifications</h1><p>System alerts and updates for the parts of the store you manage.</p></div>
+    @if(auth()->user()->canManage('customers'))<a class="nx-button" href="{{ route('customer-announcements.index') }}">Send to customers</a>@endif
     <a class="nx-button secondary" href="{{ route('notifications',['type'=>$type]) }}"><x-admin-icon name="refresh" /> Refresh</a>
 </div>
 <nav class="nx-notification-filters" aria-label="Notification categories">

@@ -398,3 +398,97 @@ document.querySelectorAll('[data-auth-form]').forEach(form => {
         }
     });
 });
+
+const customerBell = document.querySelector('[data-customer-notifications]');
+if (customerBell) {
+    const badge = customerBell.querySelector('[data-notification-count]');
+    const summary = customerBell.querySelector('summary');
+    const items = customerBell.querySelector('[data-notification-items]');
+    const status = customerBell.querySelector('[data-notification-status]');
+    const readAll = customerBell.querySelector('[data-notification-read-all]');
+    const symbol = customerBell.querySelector('[data-notification-symbol]');
+    const csrf = readAll.querySelector('[name="_token"]').value;
+    let timer, controller, busy = false, stopped = false, version = 0, delay = 45000;
+    const count = value => {
+        badge.textContent = value > 99 ? '99+' : String(value);
+        badge.hidden = value === 0;
+        summary.setAttribute('aria-label', `Notifications, ${value} unread`);
+        document.querySelectorAll('[data-notification-new-pill]').forEach(pill => { pill.textContent = `${value} new`; pill.hidden = value === 0; });
+        document.querySelectorAll('[data-notification-read-all] button').forEach(button => { button.disabled = value === 0; });
+    };
+    const schedule = () => {
+        clearTimeout(timer);
+        if (!stopped && !document.hidden) timer = setTimeout(() => refresh(), delay + Math.random() * 5000);
+    };
+    const render = notifications => {
+        items.replaceChildren();
+        if (!notifications.length) {
+            const empty = document.createElement('div'); empty.className = 'notification-empty';
+            const icon = document.createElement('span'); icon.className = 'notification-empty-symbol'; icon.append(symbol.content.cloneNode(true));
+            const heading = document.createElement('h3'); heading.textContent = 'You’re all caught up';
+            const message = document.createElement('p'); message.textContent = 'New store updates will appear here.';
+            empty.append(icon, heading, message); items.append(empty);
+        }
+        notifications.forEach(notification => {
+            const form = document.createElement('form');
+            form.method = 'POST'; form.action = notification.read_url;
+            form.className = `notification-feed-entry${notification.unread ? ' is-unread' : ''}`;
+            const token = document.createElement('input'); token.type = 'hidden'; token.name = '_token'; token.value = csrf;
+            const button = document.createElement('button'); button.type = 'submit';
+            const icon = document.createElement('span'); icon.className = 'notification-row-icon'; icon.append(symbol.content.cloneNode(true));
+            const copy = document.createElement('span'); copy.className = 'notification-row-copy';
+            const titleRow = document.createElement('span'); titleRow.className = 'notification-row-title';
+            const title = document.createElement('strong'); title.textContent = notification.title;
+            titleRow.append(title);
+            if (notification.unread) { const dot = document.createElement('span'); dot.className = 'notification-unread-dot'; dot.dataset.notificationUnreadDot = ''; dot.setAttribute('aria-label', 'Unread'); titleRow.append(dot); }
+            const message = document.createElement('span'); message.className = 'notification-row-message'; message.textContent = notification.message;
+            const time = document.createElement('time'); time.dateTime = notification.created_at; time.textContent = notification.age;
+            copy.append(titleRow, message, time); button.append(icon, copy); form.append(token, button); items.append(form);
+        });
+    };
+    async function refresh() {
+        if (busy || stopped || document.hidden) return;
+        busy = true;
+        const current = ++version;
+        const full = customerBell.open;
+        controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        try {
+            const url = new URL(customerBell.dataset.feedUrl);
+            if (!full) url.searchParams.set('summary', '1');
+            const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+            if ([401, 403, 419].includes(response.status)) { stopped = true; status.textContent = 'Please sign in again to see your notifications.'; return; }
+            if (!response.ok) throw new Error('Notifications unavailable');
+            const result = await response.json();
+            if (current !== version) return;
+            count(result.unread_count);
+            if (result.items) render(result.items);
+            status.textContent = '';
+            delay = 45000;
+        } catch (error) {
+            if (current === version && error.name !== 'AbortError') status.textContent = 'Could not load updates. Please reopen notifications to try again.';
+            delay = Math.min(delay * 2, 300000);
+        } finally {
+            clearTimeout(timeout);
+            if (current === version) { busy = false; schedule(); if (customerBell.open && !full) refresh(); }
+        }
+    }
+    customerBell.addEventListener('toggle', () => { if (customerBell.open) { delay = 45000; refresh(); } });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else refresh(); });
+    document.querySelectorAll('[data-notification-read-all]').forEach(readForm => readForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const button = readForm.querySelector('button');
+        if (button.disabled) return;
+        button.disabled = true; ++version; controller?.abort(); busy = true;
+        try {
+            const response = await fetch(readForm.action, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(readForm), signal: AbortSignal.timeout(15000) });
+            if (!response.ok) throw new Error('Read update failed');
+            const result = await response.json(); count(result.unread_count); status.textContent = '';
+            document.querySelectorAll('.customer-notification-entry.is-unread').forEach(row => row.classList.remove('is-unread'));
+            document.querySelectorAll('[data-notification-unread-dot]').forEach(dot => { dot.hidden = true; });
+            const pageStatus = document.querySelector('[data-notification-page-status]'); if (pageStatus) pageStatus.textContent = 'All notifications marked as read.';
+        } catch { button.disabled = false; status.textContent = 'Could not confirm this update. Reopen notifications to check.'; const pageStatus = document.querySelector('[data-notification-page-status]'); if (pageStatus) pageStatus.textContent = status.textContent; }
+        finally { busy = false; refresh(); }
+    }));
+    schedule();
+}

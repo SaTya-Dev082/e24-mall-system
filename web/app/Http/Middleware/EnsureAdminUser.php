@@ -19,7 +19,7 @@ class EnsureAdminUser
         $section = $request->segment(4);
         $module = match ($section) {
             'manage' => config('admin_resources.'.$request->segment(5).'.module', 'administration'),
-            'inventory' => 'inventory', 'orders' => 'orders', 'customers' => 'customers',
+            'inventory' => 'inventory', 'orders' => 'orders', 'customers', 'customer-notifications' => 'customers',
             'payments', 'refunds' => 'payments', 'staff', 'store-settings' => 'administration',
             default => 'catalog',
         };

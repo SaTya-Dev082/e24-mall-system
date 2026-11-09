@@ -31,7 +31,7 @@ class ValidateStorefrontSession
         }
 
         $response = $next($request);
-        if ($request->routeIs('login*', 'register*', 'password.*', 'account.*', 'verification.*')) {
+        if ($request->routeIs('login*', 'register*', 'password.*', 'account.*', 'verification.*', 'storefront.notifications.*')) {
             $response->headers->set('Cache-Control', 'no-store, private');
         }
 

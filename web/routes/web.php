@@ -4,6 +4,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerAddressController;
+use App\Http\Controllers\CustomerNotificationController;
 use App\Http\Controllers\CustomerRecoveryController;
 use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,10 @@ Route::post('/forgot-password', [CustomerRecoveryController::class, 'sendReset']
 Route::get('/reset-password/{token}', [CustomerRecoveryController::class, 'resetForm'])->name('password.reset');
 Route::post('/reset-password', [CustomerRecoveryController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
 Route::middleware('customer')->group(function (): void {
+    Route::get('/notifications', [CustomerNotificationController::class, 'index'])->name('storefront.notifications.index');
+    Route::get('/notifications/feed', [CustomerNotificationController::class, 'feed'])->middleware('throttle:60,1')->name('storefront.notifications.feed');
+    Route::post('/notifications/read-all', [CustomerNotificationController::class, 'readAll'])->name('storefront.notifications.read-all');
+    Route::post('/notifications/{notification}/read', [CustomerNotificationController::class, 'read'])->whereUuid('notification')->name('storefront.notifications.read');
     Route::get('/verify-email', [CustomerRecoveryController::class, 'verificationNotice'])->name('verification.notice');
     Route::post('/email/verification-notification', [CustomerRecoveryController::class, 'resendVerification'])->middleware('throttle:3,1')->name('verification.send');
     Route::get('/verify-email/{id}/{hash}', [CustomerRecoveryController::class, 'verify'])->whereNumber('id')->middleware(['signed', 'throttle:6,1'])->name('verification.verify');

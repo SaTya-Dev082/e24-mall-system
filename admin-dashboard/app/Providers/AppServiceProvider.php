@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
             }
             $notifications = app(SystemNotifications::class);
             $summary = $view->getData()['notificationSummary'] ?? $notifications->summary();
+            $view->with('alertCount', $view->getData()['alertCount'] ?? ($summary['inventory'] ?? 0));
             $view->with('notificationSummary', $summary)->with('notificationCount', $summary['all'])
                 ->with('notificationPreview', $notifications->decorate($notifications->query()->limit(5)->get()));
         });

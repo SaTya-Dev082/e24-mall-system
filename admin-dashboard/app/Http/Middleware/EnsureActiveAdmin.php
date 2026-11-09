@@ -28,7 +28,7 @@ class EnsureActiveAdmin
         $module = match ($prefix) {
             'management' => config('admin_resources.'.$request->route('resource').'.module', 'administration'),
             'products','variants','images' => 'catalog', 'inventory' => 'inventory', 'orders' => 'orders',
-            'customers' => 'customers', 'payments','refunds' => 'payments', 'reports','dashboard' => 'reports',
+            'customers','customer-announcements' => 'customers', 'payments','refunds' => 'payments', 'reports','dashboard' => 'reports',
             'staff','audit','store-settings' => 'administration', default => null,
         };
         abort_if($module && ! $request->user()->canManage($module), 403, 'Your account does not have access to this section.');

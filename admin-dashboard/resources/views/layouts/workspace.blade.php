@@ -41,8 +41,9 @@
                     ['label' => 'All orders', 'url' => route('orders'), 'active' => request()->routeIs('orders', 'orders.*') && request('status') !== 'pending'],
                     ['label' => 'Pending orders', 'url' => route('orders', ['status' => 'pending']), 'active' => request()->routeIs('orders') && request('status') === 'pending'],
                 ]],
-                ['id' => 'customers', 'label' => 'Customers', 'icon' => 'users', 'active' => request()->routeIs('customers','customers.*'), 'links' => [
+                ['id' => 'customers', 'label' => 'Customers', 'icon' => 'users', 'active' => request()->routeIs('customers','customers.*','customer-announcements.*'), 'links' => [
                     ['label' => 'All customers', 'url' => route('customers'), 'active' => request()->routeIs('customers','customers.*')],
+                    ['label' => 'Customer notifications', 'url' => route('customer-announcements.index'), 'active' => request()->routeIs('customer-announcements.*')],
                 ]],
                 ['id'=>'payments','label'=>'Payments','icon'=>'wallet','active'=>request()->routeIs('payments','refunds','refunds.*'),'links'=>[
                     ['label'=>'Payment records','url'=>route('payments'),'active'=>request()->routeIs('payments')],
